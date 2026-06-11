@@ -31,8 +31,8 @@ extern "C" {
     CryptoStatus decrypt(ConstBuffer input, ConstBuffer key, MutBuffer output);
 
     struct AlgorithmInfo {
-    const char* algorithm_name;
-    size_t key_size;
+        const char* algorithm_name;
+        size_t key_size;
     };
 
     extern "C" const AlgorithmInfo* get_algorithm_info();

@@ -77,52 +77,57 @@ int main(int argc, char* argv[]) {
     }
 
     if (action == CryptoAction::GenKey) {
-        std::string generated_key_str;
+        std::vector<uint8_t> generated_key;
         
         if (algo_name == "vigenere") {
             std::random_device rd;
             std::mt19937 gen(rd());
             std::uniform_int_distribution<> distr('a', 'z');
             for (int j = 0; j < 16; ++j) {
-                generated_key_str += static_cast<char>(distr(gen));
+                generated_key.push_back(static_cast<uint8_t>(distr(gen)));
             }
         } else if (algo_name == "rsa") {
-            generated_key_str = "Public: 7,3233\nPrivate: 1783,3233";
+            std::string rsa_keys = "Public: 7,3233\nPrivate: 1783,3233";
+            generated_key.assign(rsa_keys.begin(), rsa_keys.end());
         } else {
             std::cerr << "Error: Unknown algorithm for key generation.\n";
             return 1;
         }
 
         if (!output_path.empty()) {
-            std::ofstream key_file(output_path);
+            std::ofstream key_file(output_path, std::ios::binary);
             if (!key_file.is_open()) {
                 std::cerr << "Error: Cannot open file for writing key.\n";
+                secure_vector_clear(generated_key);
                 return 1;
             }
-            key_file << generated_key_str;
+            key_file.write(reinterpret_cast<const char*>(generated_key.data()), generated_key.size());
             key_file.close();
         } else {
-            std::cout << generated_key_str << "\n";
+            std::cout.write(reinterpret_cast<const char*>(generated_key.data()), generated_key.size());
+            std::cout << "\n";
         }
+        secure_vector_clear(generated_key);
         return 0; 
     }
 
-    std::string key_str = key_param;
+    std::vector<uint8_t> key_data;
     if (!key_param.empty()) {
-        std::ifstream key_file(key_param);
+        std::ifstream key_file(key_param, std::ios::binary); 
         if (key_file.is_open()) {
-            std::string file_content((std::istreambuf_iterator<char>(key_file)), std::istreambuf_iterator<char>());
-            if (!file_content.empty()) {
-                key_str = file_content;
-            }
+            key_data.assign((std::istreambuf_iterator<char>(key_file)), std::istreambuf_iterator<char>());
             key_file.close();
+        } else {
+            key_data.assign(key_param.begin(), key_param.end());
         }
     } else {
         std::cerr << "Enter cryptographic key: ";
-        std::getline(std::cin, key_str);
+        std::string temp_key;
+        std::getline(std::cin, temp_key);
+        key_data.assign(temp_key.begin(), temp_key.end());
     }
 
-    if (key_str.empty()) {
+    if (key_data.empty()) {
         std::cerr << "Error: Key cannot be empty.\n";
         return 1;
     }
@@ -132,6 +137,7 @@ int main(int argc, char* argv[]) {
         std::ifstream infile(input_path, std::ios::binary);
         if (!infile.is_open()) {
             std::cerr << "Error: Cannot open input file " << input_path << "\n";
+            secure_vector_clear(key_data);
             return 1;
         }
         input_data.assign((std::istreambuf_iterator<char>(infile)), std::istreambuf_iterator<char>());
@@ -141,8 +147,9 @@ int main(int argc, char* argv[]) {
         input_data.assign(std::istreambuf_iterator<char>(std::cin), std::istreambuf_iterator<char>());
     }
 
-    if (input_data.empty() && action != CryptoAction::GenKey) {
+    if (input_data.empty()) {
         std::cerr << "Error: No input data provided.\n";
+        secure_vector_clear(key_data);
         return 1;
     }
 
@@ -150,30 +157,49 @@ int main(int argc, char* argv[]) {
     void* handle = dlopen(lib_path.c_str(), RTLD_LAZY);
     if (!handle) {
         std::cerr << "Error: Cannot load plugin " << lib_path << " (" << dlerror() << ")\n";
+        secure_vector_clear(key_data);
+        secure_vector_clear(input_data);
         return 1;
     }
 
-    auto get_algorithm_info = reinterpret_cast<get_algorithm_info_t>(dlsym(handle, "get_algorithm_info"));
-    auto get_output_size = reinterpret_cast<get_output_size_t>(dlsym(handle, "get_output_size"));
-    auto encrypt = reinterpret_cast<encrypt_t>(dlsym(handle, "encrypt"));
-    auto decrypt = reinterpret_cast<decrypt_t>(dlsym(handle, "decrypt"));
+    using GetInfoFunc = const AlgorithmInfo* (*)();
+    using GetSizeFunc = CryptoStatus (*)(size_t, size_t*, bool);
+    using CryptoFunc = CryptoStatus (*)(ConstBuffer, ConstBuffer, MutBuffer);
+
+    auto get_algorithm_info = reinterpret_cast<GetInfoFunc>(dlsym(handle, "get_algorithm_info"));
+    auto get_output_size = reinterpret_cast<GetSizeFunc>(dlsym(handle, "get_output_size"));
+    auto encrypt = reinterpret_cast<CryptoFunc>(dlsym(handle, "encrypt"));
+    auto decrypt = reinterpret_cast<CryptoFunc>(dlsym(handle, "decrypt"));
 
     if (!get_algorithm_info || !get_output_size || !encrypt || !decrypt) {
         std::cerr << "Error: Plugin missing required exported functions C ABI.\n";
+        secure_vector_clear(key_data);
+        secure_vector_clear(input_data);
         dlclose(handle);
         return 1;
     }
 
-    AlgorithmInfo info;
-    get_algorithm_info(&info);
+    const AlgorithmInfo* info = get_algorithm_info();
+
+    if (info && info->key_size > 0 && key_data.size() != info->key_size) {
+        std::cerr << "Error: Invalid key size for algorithm " << info->algorithm_name 
+                  << ". Expected " << info->key_size << " bytes, but got " 
+                  << key_data.size() << " bytes.\n";
+        secure_vector_clear(key_data);
+        secure_vector_clear(input_data);
+        dlclose(handle);
+        return 1;
+    }
 
     ConstBuffer src_buf{ input_data.data(), input_data.size() };
-    ConstBuffer k_buf{ reinterpret_cast<const uint8_t*>(key_str.data()), key_str.size() };
+    ConstBuffer k_buf{ key_data.data(), key_data.size() };
 
     size_t out_size = 0;
-    CryptoStatus status = get_output_size(action == CryptoAction::Encrypt, &src_buf, &k_buf, &out_size);
+    CryptoStatus status = get_output_size(input_data.size(), &out_size, action == CryptoAction::Encrypt);
     if (status != CryptoStatus::Success) {
         std::cerr << "Error: Plugin get_output_size failed with code " << static_cast<int>(status) << "\n";
+        secure_vector_clear(key_data);
+        secure_vector_clear(input_data);
         dlclose(handle);
         return 1;
     }
@@ -182,13 +208,14 @@ int main(int argc, char* argv[]) {
     MutBuffer dst_buf{ output_data.data(), output_data.size() };
 
     if (action == CryptoAction::Encrypt) {
-        status = encrypt(&src_buf, &k_buf, &dst_buf);
+        status = encrypt(src_buf, k_buf, dst_buf);
     } else {
-        status = decrypt(&src_buf, &k_buf, &dst_buf);
+        status = decrypt(src_buf, k_buf, dst_buf);
     }
 
     if (status != CryptoStatus::Success) {
         std::cerr << "Error: Cryptographic operation failed with code " << static_cast<int>(status) << "\n";
+        secure_vector_clear(key_data);
         secure_vector_clear(input_data);
         secure_vector_clear(output_data);
         dlclose(handle);
@@ -207,6 +234,7 @@ int main(int argc, char* argv[]) {
         std::cout.write(reinterpret_cast<const char*>(output_data.data()), dst_buf.size);
     }
 
+    secure_vector_clear(key_data);
     secure_vector_clear(input_data);
     secure_vector_clear(output_data);
     dlclose(handle);
