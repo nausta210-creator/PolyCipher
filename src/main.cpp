@@ -87,8 +87,40 @@ int main(int argc, char* argv[]) {
                 generated_key.push_back(static_cast<uint8_t>(distr(gen)));
             }
         } else if (algo_name == "rsa") {
-            std::string rsa_keys = "Public: 7,3233\nPrivate: 1783,3233";
-            generated_key.assign(rsa_keys.begin(), rsa_keys.end());
+            uint64_t p = 0, q = 0;
+            std::cout << "Введите первое простое число (p): ";
+            std::cin >> p;
+            std::cout << "Введите второе простое число (q): ";
+            std::cin >> q;
+
+            std::string lib_path = "./librsa.so";
+            void* rsa_handle = dlopen(lib_path.c_str(), RTLD_LAZY);
+            if (!rsa_handle) {
+                std::cerr << "Error: Cannot load RSA plugin for key generation.\n";
+                return 1;
+            }
+
+            using GenKeysFunc = CryptoStatus (*)(uint64_t, uint64_t, char*, size_t, size_t*);
+            auto generate_rsa_keys = reinterpret_cast<GenKeysFunc>(dlsym(rsa_handle, "generate_rsa_keys"));
+
+            if (!generate_rsa_keys) {
+                std::cerr << "Error: Plugin missing 'generate_rsa_keys' function.\n";
+                dlclose(rsa_handle);
+                return 1;
+            }
+
+            char buffer[512] = {0};
+            size_t bytes_written = 0;
+
+            CryptoStatus status = generate_rsa_keys(p, q, buffer, sizeof(buffer), &bytes_written);
+            if (status != CryptoStatus::Success) {
+                std::cerr << "Error: Key generation failed inside plugin.\n";
+                dlclose(rsa_handle);
+                return 1;
+            }
+
+            generated_key.assign(buffer, buffer + bytes_written);
+            dlclose(rsa_handle);
         } else {
             std::cerr << "Error: Unknown algorithm for key generation.\n";
             return 1;
@@ -115,6 +147,7 @@ int main(int argc, char* argv[]) {
     if (!key_param.empty()) {
         std::ifstream key_file(key_param, std::ios::binary); 
         if (key_file.is_open()) {
+            key_file >> std::noskipws;
             key_data.assign((std::istreambuf_iterator<char>(key_file)), std::istreambuf_iterator<char>());
             key_file.close();
         } else {

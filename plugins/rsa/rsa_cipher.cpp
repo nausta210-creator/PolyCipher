@@ -28,6 +28,8 @@ uint64_t modular_pow(uint64_t base, uint64_t exp, uint64_t mod) {
     return res;
 }
 
+extern "C" {
+
 int64_t extended_gcd(int64_t e, int64_t phi) {
     int64_t r0 = phi;
     int64_t u0 = 0;
@@ -63,7 +65,29 @@ int64_t extended_gcd(int64_t e, int64_t phi) {
     return u0;
 }
 
-extern "C" {
+CryptoStatus generate_rsa_keys(uint64_t p, uint64_t q, char* out_buffer, size_t max_size, size_t* written) {
+    if (!out_buffer || !written || p <= 1 || q <= 1) {
+        return CryptoStatus::InvalidParam;
+    }
+
+    uint64_t n = p * q;
+    uint64_t phi = (p - 1) * (q - 1);
+    uint64_t e = (65537 < phi) ? 65537 : 7; 
+
+    int64_t d = extended_gcd(e, phi); 
+    
+    std::string keys_str = "Public: " + std::to_string(e) + "," + std::to_string(n) + "\nPrivate: " + std::to_string(d) + "," + std::to_string(n);
+
+    if (keys_str.size() >= max_size) {
+        return CryptoStatus::BufferTooSmall;
+    }
+
+    std::copy(keys_str.begin(), keys_str.end(), out_buffer);
+    out_buffer[keys_str.size()] = '\0';
+    *written = keys_str.size();
+
+    return CryptoStatus::Success;
+} // <- ВОТ ЭТУ СКОБКУ ТЫ ПРОПУСТИЛА
 
 CryptoStatus get_output_size(size_t input_size, size_t* out_size, bool is_encrypt) {
     if (!out_size) return CryptoStatus::InvalidParam;
@@ -129,9 +153,10 @@ CryptoStatus decrypt(ConstBuffer input, ConstBuffer key, MutBuffer output) {
 
     return CryptoStatus::Success;
 }
-    const AlgorithmInfo* get_algorithm_info() {
-        static const AlgorithmInfo info = { "RSA", 8 };
-        return &info;
-    }
+
+const AlgorithmInfo* get_algorithm_info() {
+    static const AlgorithmInfo info = { "RSA", 8 };
+    return &info;
+}
 
 }
