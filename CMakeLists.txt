@@ -10,3 +10,6 @@ add_executable(PolyCipher src/main.cpp)
 target_link_libraries(PolyCipher ${CMAKE_DL_LIBS})
 
 add_subdirectory(plugins)
+
+add_executable(PolyCipherTests src/tests.cpp)
+target_link_libraries(PolyCipherTests ${CMAKE_DL_LIBS})
