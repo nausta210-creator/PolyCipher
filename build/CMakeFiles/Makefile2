@@ -64,25 +64,83 @@ CMAKE_BINARY_DIR = "/home/maslova/Рабочий стол/PolyCipher/build"
 
 # The main recursive "all" target.
 all: CMakeFiles/PolyCipher.dir/all
-all: CMakeFiles/vigenere.dir/all
-all: CMakeFiles/rsa.dir/all
+all: plugins/all
 .PHONY : all
 
 # The main recursive "codegen" target.
 codegen: CMakeFiles/PolyCipher.dir/codegen
-codegen: CMakeFiles/vigenere.dir/codegen
-codegen: CMakeFiles/rsa.dir/codegen
+codegen: plugins/codegen
 .PHONY : codegen
 
 # The main recursive "preinstall" target.
-preinstall:
+preinstall: plugins/preinstall
 .PHONY : preinstall
 
 # The main recursive "clean" target.
 clean: CMakeFiles/PolyCipher.dir/clean
-clean: CMakeFiles/vigenere.dir/clean
-clean: CMakeFiles/rsa.dir/clean
+clean: plugins/clean
 .PHONY : clean
+
+#=============================================================================
+# Directory level rules for directory plugins
+
+# Recursive "all" directory target.
+plugins/all: plugins/vigenere/all
+plugins/all: plugins/rsa/all
+.PHONY : plugins/all
+
+# Recursive "codegen" directory target.
+plugins/codegen: plugins/vigenere/codegen
+plugins/codegen: plugins/rsa/codegen
+.PHONY : plugins/codegen
+
+# Recursive "preinstall" directory target.
+plugins/preinstall: plugins/vigenere/preinstall
+plugins/preinstall: plugins/rsa/preinstall
+.PHONY : plugins/preinstall
+
+# Recursive "clean" directory target.
+plugins/clean: plugins/vigenere/clean
+plugins/clean: plugins/rsa/clean
+.PHONY : plugins/clean
+
+#=============================================================================
+# Directory level rules for directory plugins/rsa
+
+# Recursive "all" directory target.
+plugins/rsa/all: plugins/rsa/CMakeFiles/rsa.dir/all
+.PHONY : plugins/rsa/all
+
+# Recursive "codegen" directory target.
+plugins/rsa/codegen: plugins/rsa/CMakeFiles/rsa.dir/codegen
+.PHONY : plugins/rsa/codegen
+
+# Recursive "preinstall" directory target.
+plugins/rsa/preinstall:
+.PHONY : plugins/rsa/preinstall
+
+# Recursive "clean" directory target.
+plugins/rsa/clean: plugins/rsa/CMakeFiles/rsa.dir/clean
+.PHONY : plugins/rsa/clean
+
+#=============================================================================
+# Directory level rules for directory plugins/vigenere
+
+# Recursive "all" directory target.
+plugins/vigenere/all: plugins/vigenere/CMakeFiles/vigenere.dir/all
+.PHONY : plugins/vigenere/all
+
+# Recursive "codegen" directory target.
+plugins/vigenere/codegen: plugins/vigenere/CMakeFiles/vigenere.dir/codegen
+.PHONY : plugins/vigenere/codegen
+
+# Recursive "preinstall" directory target.
+plugins/vigenere/preinstall:
+.PHONY : plugins/vigenere/preinstall
+
+# Recursive "clean" directory target.
+plugins/vigenere/clean: plugins/vigenere/CMakeFiles/vigenere.dir/clean
+.PHONY : plugins/vigenere/clean
 
 #=============================================================================
 # Target rules for target CMakeFiles/PolyCipher.dir
@@ -117,68 +175,68 @@ CMakeFiles/PolyCipher.dir/clean:
 .PHONY : CMakeFiles/PolyCipher.dir/clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/vigenere.dir
+# Target rules for target plugins/vigenere/CMakeFiles/vigenere.dir
 
 # All Build rule for target.
-CMakeFiles/vigenere.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/vigenere.dir/build.make CMakeFiles/vigenere.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/vigenere.dir/build.make CMakeFiles/vigenere.dir/build
+plugins/vigenere/CMakeFiles/vigenere.dir/all:
+	$(MAKE) $(MAKESILENT) -f plugins/vigenere/CMakeFiles/vigenere.dir/build.make plugins/vigenere/CMakeFiles/vigenere.dir/depend
+	$(MAKE) $(MAKESILENT) -f plugins/vigenere/CMakeFiles/vigenere.dir/build.make plugins/vigenere/CMakeFiles/vigenere.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="/home/maslova/Рабочий стол/PolyCipher/build/CMakeFiles" --progress-num=5,6 "Built target vigenere"
-.PHONY : CMakeFiles/vigenere.dir/all
+.PHONY : plugins/vigenere/CMakeFiles/vigenere.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/vigenere.dir/rule: cmake_check_build_system
+plugins/vigenere/CMakeFiles/vigenere.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start "/home/maslova/Рабочий стол/PolyCipher/build/CMakeFiles" 2
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/vigenere.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 plugins/vigenere/CMakeFiles/vigenere.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start "/home/maslova/Рабочий стол/PolyCipher/build/CMakeFiles" 0
-.PHONY : CMakeFiles/vigenere.dir/rule
+.PHONY : plugins/vigenere/CMakeFiles/vigenere.dir/rule
 
 # Convenience name for target.
-vigenere: CMakeFiles/vigenere.dir/rule
+vigenere: plugins/vigenere/CMakeFiles/vigenere.dir/rule
 .PHONY : vigenere
 
 # codegen rule for target.
-CMakeFiles/vigenere.dir/codegen:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/vigenere.dir/build.make CMakeFiles/vigenere.dir/codegen
+plugins/vigenere/CMakeFiles/vigenere.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f plugins/vigenere/CMakeFiles/vigenere.dir/build.make plugins/vigenere/CMakeFiles/vigenere.dir/codegen
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="/home/maslova/Рабочий стол/PolyCipher/build/CMakeFiles" --progress-num=5,6 "Finished codegen for target vigenere"
-.PHONY : CMakeFiles/vigenere.dir/codegen
+.PHONY : plugins/vigenere/CMakeFiles/vigenere.dir/codegen
 
 # clean rule for target.
-CMakeFiles/vigenere.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/vigenere.dir/build.make CMakeFiles/vigenere.dir/clean
-.PHONY : CMakeFiles/vigenere.dir/clean
+plugins/vigenere/CMakeFiles/vigenere.dir/clean:
+	$(MAKE) $(MAKESILENT) -f plugins/vigenere/CMakeFiles/vigenere.dir/build.make plugins/vigenere/CMakeFiles/vigenere.dir/clean
+.PHONY : plugins/vigenere/CMakeFiles/vigenere.dir/clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/rsa.dir
+# Target rules for target plugins/rsa/CMakeFiles/rsa.dir
 
 # All Build rule for target.
-CMakeFiles/rsa.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/rsa.dir/build.make CMakeFiles/rsa.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/rsa.dir/build.make CMakeFiles/rsa.dir/build
+plugins/rsa/CMakeFiles/rsa.dir/all:
+	$(MAKE) $(MAKESILENT) -f plugins/rsa/CMakeFiles/rsa.dir/build.make plugins/rsa/CMakeFiles/rsa.dir/depend
+	$(MAKE) $(MAKESILENT) -f plugins/rsa/CMakeFiles/rsa.dir/build.make plugins/rsa/CMakeFiles/rsa.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="/home/maslova/Рабочий стол/PolyCipher/build/CMakeFiles" --progress-num=3,4 "Built target rsa"
-.PHONY : CMakeFiles/rsa.dir/all
+.PHONY : plugins/rsa/CMakeFiles/rsa.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/rsa.dir/rule: cmake_check_build_system
+plugins/rsa/CMakeFiles/rsa.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start "/home/maslova/Рабочий стол/PolyCipher/build/CMakeFiles" 2
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/rsa.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 plugins/rsa/CMakeFiles/rsa.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start "/home/maslova/Рабочий стол/PolyCipher/build/CMakeFiles" 0
-.PHONY : CMakeFiles/rsa.dir/rule
+.PHONY : plugins/rsa/CMakeFiles/rsa.dir/rule
 
 # Convenience name for target.
-rsa: CMakeFiles/rsa.dir/rule
+rsa: plugins/rsa/CMakeFiles/rsa.dir/rule
 .PHONY : rsa
 
 # codegen rule for target.
-CMakeFiles/rsa.dir/codegen:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/rsa.dir/build.make CMakeFiles/rsa.dir/codegen
+plugins/rsa/CMakeFiles/rsa.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f plugins/rsa/CMakeFiles/rsa.dir/build.make plugins/rsa/CMakeFiles/rsa.dir/codegen
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="/home/maslova/Рабочий стол/PolyCipher/build/CMakeFiles" --progress-num=3,4 "Finished codegen for target rsa"
-.PHONY : CMakeFiles/rsa.dir/codegen
+.PHONY : plugins/rsa/CMakeFiles/rsa.dir/codegen
 
 # clean rule for target.
-CMakeFiles/rsa.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/rsa.dir/build.make CMakeFiles/rsa.dir/clean
-.PHONY : CMakeFiles/rsa.dir/clean
+plugins/rsa/CMakeFiles/rsa.dir/clean:
+	$(MAKE) $(MAKESILENT) -f plugins/rsa/CMakeFiles/rsa.dir/build.make plugins/rsa/CMakeFiles/rsa.dir/clean
+.PHONY : plugins/rsa/CMakeFiles/rsa.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

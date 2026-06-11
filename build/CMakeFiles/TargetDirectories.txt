@@ -1,5 +1,11 @@
 /home/maslova/Рабочий стол/PolyCipher/build/CMakeFiles/PolyCipher.dir
-/home/maslova/Рабочий стол/PolyCipher/build/CMakeFiles/vigenere.dir
-/home/maslova/Рабочий стол/PolyCipher/build/CMakeFiles/rsa.dir
 /home/maslova/Рабочий стол/PolyCipher/build/CMakeFiles/edit_cache.dir
 /home/maslova/Рабочий стол/PolyCipher/build/CMakeFiles/rebuild_cache.dir
+/home/maslova/Рабочий стол/PolyCipher/build/plugins/CMakeFiles/edit_cache.dir
+/home/maslova/Рабочий стол/PolyCipher/build/plugins/CMakeFiles/rebuild_cache.dir
+/home/maslova/Рабочий стол/PolyCipher/build/plugins/vigenere/CMakeFiles/vigenere.dir
+/home/maslova/Рабочий стол/PolyCipher/build/plugins/vigenere/CMakeFiles/edit_cache.dir
+/home/maslova/Рабочий стол/PolyCipher/build/plugins/vigenere/CMakeFiles/rebuild_cache.dir
+/home/maslova/Рабочий стол/PolyCipher/build/plugins/rsa/CMakeFiles/rsa.dir
+/home/maslova/Рабочий стол/PolyCipher/build/plugins/rsa/CMakeFiles/edit_cache.dir
+/home/maslova/Рабочий стол/PolyCipher/build/plugins/rsa/CMakeFiles/rebuild_cache.dir

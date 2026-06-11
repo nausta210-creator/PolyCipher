@@ -139,7 +139,7 @@ vigenere: cmake_check_build_system
 
 # fast build rule for target.
 vigenere/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/vigenere.dir/build.make CMakeFiles/vigenere.dir/build
+	$(MAKE) $(MAKESILENT) -f plugins/vigenere/CMakeFiles/vigenere.dir/build.make plugins/vigenere/CMakeFiles/vigenere.dir/build
 .PHONY : vigenere/fast
 
 #=============================================================================
@@ -152,56 +152,8 @@ rsa: cmake_check_build_system
 
 # fast build rule for target.
 rsa/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/rsa.dir/build.make CMakeFiles/rsa.dir/build
+	$(MAKE) $(MAKESILENT) -f plugins/rsa/CMakeFiles/rsa.dir/build.make plugins/rsa/CMakeFiles/rsa.dir/build
 .PHONY : rsa/fast
-
-plugins/rsa/rsa_cipher.o: plugins/rsa/rsa_cipher.cpp.o
-.PHONY : plugins/rsa/rsa_cipher.o
-
-# target to build an object file
-plugins/rsa/rsa_cipher.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/rsa.dir/build.make CMakeFiles/rsa.dir/plugins/rsa/rsa_cipher.cpp.o
-.PHONY : plugins/rsa/rsa_cipher.cpp.o
-
-plugins/rsa/rsa_cipher.i: plugins/rsa/rsa_cipher.cpp.i
-.PHONY : plugins/rsa/rsa_cipher.i
-
-# target to preprocess a source file
-plugins/rsa/rsa_cipher.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/rsa.dir/build.make CMakeFiles/rsa.dir/plugins/rsa/rsa_cipher.cpp.i
-.PHONY : plugins/rsa/rsa_cipher.cpp.i
-
-plugins/rsa/rsa_cipher.s: plugins/rsa/rsa_cipher.cpp.s
-.PHONY : plugins/rsa/rsa_cipher.s
-
-# target to generate assembly for a file
-plugins/rsa/rsa_cipher.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/rsa.dir/build.make CMakeFiles/rsa.dir/plugins/rsa/rsa_cipher.cpp.s
-.PHONY : plugins/rsa/rsa_cipher.cpp.s
-
-plugins/vigenere/vigenere_cipher.o: plugins/vigenere/vigenere_cipher.cpp.o
-.PHONY : plugins/vigenere/vigenere_cipher.o
-
-# target to build an object file
-plugins/vigenere/vigenere_cipher.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/vigenere.dir/build.make CMakeFiles/vigenere.dir/plugins/vigenere/vigenere_cipher.cpp.o
-.PHONY : plugins/vigenere/vigenere_cipher.cpp.o
-
-plugins/vigenere/vigenere_cipher.i: plugins/vigenere/vigenere_cipher.cpp.i
-.PHONY : plugins/vigenere/vigenere_cipher.i
-
-# target to preprocess a source file
-plugins/vigenere/vigenere_cipher.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/vigenere.dir/build.make CMakeFiles/vigenere.dir/plugins/vigenere/vigenere_cipher.cpp.i
-.PHONY : plugins/vigenere/vigenere_cipher.cpp.i
-
-plugins/vigenere/vigenere_cipher.s: plugins/vigenere/vigenere_cipher.cpp.s
-.PHONY : plugins/vigenere/vigenere_cipher.s
-
-# target to generate assembly for a file
-plugins/vigenere/vigenere_cipher.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/vigenere.dir/build.make CMakeFiles/vigenere.dir/plugins/vigenere/vigenere_cipher.cpp.s
-.PHONY : plugins/vigenere/vigenere_cipher.cpp.s
 
 src/main.o: src/main.cpp.o
 .PHONY : src/main.o
@@ -238,12 +190,6 @@ help:
 	@echo "... PolyCipher"
 	@echo "... rsa"
 	@echo "... vigenere"
-	@echo "... plugins/rsa/rsa_cipher.o"
-	@echo "... plugins/rsa/rsa_cipher.i"
-	@echo "... plugins/rsa/rsa_cipher.s"
-	@echo "... plugins/vigenere/vigenere_cipher.o"
-	@echo "... plugins/vigenere/vigenere_cipher.i"
-	@echo "... plugins/vigenere/vigenere_cipher.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
