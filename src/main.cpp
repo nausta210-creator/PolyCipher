@@ -113,12 +113,16 @@ int main(int argc, char* argv[]) {
             size_t bytes_written = 0;
 
             CryptoStatus status = generate_rsa_keys(p, q, buffer, sizeof(buffer), &bytes_written);
-            if (status != CryptoStatus::Success) {
-                std::cerr << "Error: Key generation failed inside plugin.\n";
+            if (status == CryptoStatus::InvalidParam) {
+                std::cerr << "Error: Invalid parameters. Both p and q must be prime numbers!\n";
+                dlclose(rsa_handle);
+                return 1;
+            } else if (status != CryptoStatus::Success) {
+                std::cerr << "Error: Key generation failed inside plugin (Status code: " 
+                          << static_cast<int>(status) << ").\n";
                 dlclose(rsa_handle);
                 return 1;
             }
-
             generated_key.assign(buffer, buffer + bytes_written);
             dlclose(rsa_handle);
         } else {

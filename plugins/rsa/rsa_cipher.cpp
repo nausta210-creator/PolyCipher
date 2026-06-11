@@ -65,7 +65,21 @@ int64_t extended_gcd(int64_t e, int64_t phi) {
     return u0;
 }
 
+bool isPrime(uint64_t n) {
+    if (n <= 1) return false;
+    if (n <= 3) return true;
+    if (n % 2 == 0 || n % 3 == 0) return false;
+    for (uint64_t i = 5; i * i <= n; i += 6) {
+        if (n % i == 0 || n % (i + 2) == 0) return false;
+    }
+    return true;
+}
+
 CryptoStatus generate_rsa_keys(uint64_t p, uint64_t q, char* out_buffer, size_t max_size, size_t* written) {
+    if (!isPrime(p) || !isPrime(q)) {
+        return CryptoStatus::InvalidParam; 
+    }
+
     if (!out_buffer || !written || p <= 1 || q <= 1) {
         return CryptoStatus::InvalidParam;
     }
@@ -87,7 +101,7 @@ CryptoStatus generate_rsa_keys(uint64_t p, uint64_t q, char* out_buffer, size_t 
     *written = keys_str.size();
 
     return CryptoStatus::Success;
-} // <- ВОТ ЭТУ СКОБКУ ТЫ ПРОПУСТИЛА
+}
 
 CryptoStatus get_output_size(size_t input_size, size_t* out_size, bool is_encrypt) {
     if (!out_size) return CryptoStatus::InvalidParam;
@@ -110,8 +124,15 @@ CryptoStatus encrypt(ConstBuffer input, ConstBuffer key, MutBuffer output) {
 
     std::string key_str(reinterpret_cast<const char*>(key.data), key.size);
     
+    size_t pos = key_str.find("Public: ");
+    if (pos != std::string::npos) {
+        pos += 8;
+    } else {
+        pos = 0; 
+    }
+
     uint64_t e = 0, n = 0;
-    if (std::sscanf(key_str.c_str(), "%lu,%lu", &e, &n) != 2) {
+    if (std::sscanf(key_str.c_str() + pos, "%lu,%lu", &e, &n) != 2) {
         return CryptoStatus::InvalidParam;
     }
 
@@ -138,8 +159,15 @@ CryptoStatus decrypt(ConstBuffer input, ConstBuffer key, MutBuffer output) {
 
     std::string key_str(reinterpret_cast<const char*>(key.data), key.size);
     
+    size_t pos = key_str.find("Private: ");
+    if (pos != std::string::npos) {
+        pos += 9;
+    } else {
+        pos = 0;
+    }
+
     uint64_t d = 0, n = 0;
-    if (std::sscanf(key_str.c_str(), "%lu,%lu", &d, &n) != 2) {
+    if (std::sscanf(key_str.c_str() + pos, "%lu,%lu", &d, &n) != 2) {
         return CryptoStatus::InvalidParam;
     }
 
@@ -155,7 +183,7 @@ CryptoStatus decrypt(ConstBuffer input, ConstBuffer key, MutBuffer output) {
 }
 
 const AlgorithmInfo* get_algorithm_info() {
-    static const AlgorithmInfo info = { "RSA", 8 };
+    static const AlgorithmInfo info = { "RSA", 0 };
     return &info;
 }
 
