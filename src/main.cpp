@@ -109,7 +109,11 @@ int main(int argc, char* argv[]) {
                 std::cerr << "Error: Invalid parameters. Both p and q must be prime numbers!\n";
                 dlclose(plugin_handle);
                 return 1;
-            } else if (status != CryptoStatus::Success) {
+            } else if (status == CryptoStatus::InvalidParam && algo_name == "elgamal") {
+                std::cerr << "Error: Invalid parameters. Both p must be prime numbers!\n";
+                dlclose(plugin_handle);
+                return 1;
+            }else if (status != CryptoStatus::Success) {
                 std::cerr << "Error: Key generation failed inside " << algo_name << " plugin.\n";
                 dlclose(plugin_handle);
                 return 1;
@@ -213,9 +217,7 @@ int main(int argc, char* argv[]) {
     const AlgorithmInfo* info = get_algorithm_info();
 
     if (info && info->key_size > 0 && key_data.size() != info->key_size) {
-        std::cerr << "Error: Invalid key size for algorithm " << info->algorithm_name 
-                  << ". Expected " << info->key_size << " bytes, but got " 
-                  << key_data.size() << " bytes.\n";
+        std::cerr << "Error: Invalid key size for algorithm " << info->algorithm_name << ". Expected " << info->key_size << " bytes, but got " << key_data.size() << " bytes.\n";
         secure_memory_clear(key_data);
         secure_memory_clear(input_data);
         dlclose(handle);

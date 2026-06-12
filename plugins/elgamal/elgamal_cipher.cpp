@@ -5,6 +5,16 @@
 
 // МАТЕМАТИЧЕСКИЕ ФУНКЦИИ 
 
+bool isPrime(uint64_t n) {
+    if (n <= 1) return false;
+    if (n <= 3) return true;
+    if (n % 2 == 0 || n % 3 == 0) return false;
+    for (uint64_t i = 5; i * i <= n; i += 6) {
+        if (n % i == 0 || n % (i + 2) == 0) return false;
+    }
+    return true;
+}
+
 // Возведение в степень по модулю (бинарный алгоритм)
 static uint64_t mod_pow(uint64_t base, uint64_t exp, uint64_t mod) {
     uint64_t result = 1;
@@ -114,6 +124,9 @@ const AlgorithmInfo* get_algorithm_info() {
 }
 
 CryptoStatus generate_elgamal_keys(uint64_t p, uint64_t g, char* buffer, size_t max_len, size_t* bytes_written) {
+    if (!isPrime(p)) {
+        return CryptoStatus::InvalidParam; 
+    }
     if (!buffer || !bytes_written) return CryptoStatus::InvalidParam;
     if (p < 3 || g == 0) return CryptoStatus::InvalidParam;
     
