@@ -4,15 +4,6 @@
 #include <cstdio>
 #include <iostream>
 
-void secure_rsa_clear(uint8_t* ptr, size_t size) {
-    if (ptr) {
-        volatile uint8_t* vptr = static_cast<volatile uint8_t*>(ptr);
-        while (size--) {
-            *vptr++ = 0;
-        }
-    }
-}
-
 uint64_t modular_pow(uint64_t base, uint64_t exp, uint64_t mod) {
     if (mod == 1) return 0;
     uint64_t res = 1;
@@ -27,8 +18,6 @@ uint64_t modular_pow(uint64_t base, uint64_t exp, uint64_t mod) {
     }
     return res;
 }
-
-extern "C" {
 
 int64_t extended_gcd(int64_t e, int64_t phi) {
     int64_t r0 = phi;
@@ -75,6 +64,9 @@ bool isPrime(uint64_t n) {
     return true;
 }
 
+
+extern "C" {
+
 CryptoStatus generate_rsa_keys(uint64_t p, uint64_t q, char* out_buffer, size_t max_size, size_t* written) {
     if (!isPrime(p) || !isPrime(q)) {
         return CryptoStatus::InvalidParam; 
@@ -86,7 +78,10 @@ CryptoStatus generate_rsa_keys(uint64_t p, uint64_t q, char* out_buffer, size_t 
 
     uint64_t n = p * q;
     uint64_t phi = (p - 1) * (q - 1);
-    uint64_t e = (65537 < phi) ? 65537 : 7; 
+    uint64_t e = 65537;
+    if (e >= phi) {
+        e = 7;
+    }
 
     int64_t d = extended_gcd(e, phi); 
     
@@ -146,6 +141,8 @@ CryptoStatus encrypt(ConstBuffer input, ConstBuffer key, MutBuffer output) {
         out_ptr[i] = modular_pow(m, e, n);
     }
 
+    secure_memory_clear(reinterpret_cast<uint8_t*>(&key_str[0]), key_str.size());
+
     return CryptoStatus::Success;
 }
 
@@ -178,6 +175,8 @@ CryptoStatus decrypt(ConstBuffer input, ConstBuffer key, MutBuffer output) {
         uint64_t c = in_ptr[i];
         output.data[i] = static_cast<uint8_t>(modular_pow(c, d, n) & 0xFF);
     }
+
+    secure_memory_clear(reinterpret_cast<uint8_t*>(&key_str[0]), key_str.size());
 
     return CryptoStatus::Success;
 }

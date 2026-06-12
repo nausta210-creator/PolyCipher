@@ -1,29 +1,23 @@
 #include "crypto_interface.h"
 #include <random>
 
-void secure_mem_clear(uint8_t* ptr, size_t size) {
-    if (ptr) {
-        volatile uint8_t* vptr = static_cast<volatile uint8_t*>(ptr);
-        while (size--) {
-            *vptr++ = 0;
-        }
-    }
-}
+const size_t VIGENERE_KEY_SIZE = 16;
 
 extern "C" {
+
 CryptoStatus generate_vigenere_keys(uint64_t, uint64_t, char* buffer, size_t buffer_size, size_t* bytes_written) {
     if (!buffer || !bytes_written) return CryptoStatus::InvalidParam;
-    if (buffer_size < 16) return CryptoStatus::BufferTooSmall;
+    if (buffer_size < VIGENERE_KEY_SIZE) return CryptoStatus::BufferTooSmall;
 
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> distr('a', 'z');
 
-    for (size_t j = 0; j < 16; ++j) {
+    for (size_t j = 0; j < VIGENERE_KEY_SIZE; ++j) {
         buffer[j] = static_cast<char>(distr(gen));
     }
 
-    *bytes_written = 16;
+    *bytes_written = VIGENERE_KEY_SIZE;
     return CryptoStatus::Success;
 }
 
@@ -69,9 +63,10 @@ CryptoStatus decrypt(ConstBuffer input, ConstBuffer key, MutBuffer output) {
 
     return CryptoStatus::Success;
 }
-    const AlgorithmInfo* get_algorithm_info() {
-        static const AlgorithmInfo info = { "Vigenere", 0 }; 
-        return &info;
-    }
+
+const AlgorithmInfo* get_algorithm_info() {
+    static const AlgorithmInfo info = { "Vigenere", VIGENERE_KEY_SIZE }; 
+    return &info;
+}
 
 }

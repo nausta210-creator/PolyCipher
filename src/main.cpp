@@ -15,15 +15,6 @@ enum class CryptoAction : int32_t {
     Unknown
 };
 
-void secure_vector_clear(std::vector<uint8_t>& vec) {
-    volatile uint8_t* p = vec.data();
-    size_t size = vec.size();
-    while (size--) {
-        *p++ = 0;
-    }
-    vec.clear();
-}
-
 void print_help() {
     std::cout << "Usage: ./PolyCipher [options]\n"
               << "Options:\n"
@@ -136,7 +127,7 @@ int main(int argc, char* argv[]) {
             std::ofstream key_file(output_path, std::ios::binary);
             if (!key_file.is_open()) {
                 std::cerr << "Error: Cannot open file for writing key.\n";
-                secure_vector_clear(generated_key);
+                secure_memory_clear(generated_key);
                 return 1;
             }
             key_file.write(reinterpret_cast<const char*>(generated_key.data()), generated_key.size());
@@ -145,7 +136,7 @@ int main(int argc, char* argv[]) {
             std::cout.write(reinterpret_cast<const char*>(generated_key.data()), generated_key.size());
             std::cout << "\n";
         }
-        secure_vector_clear(generated_key);
+        secure_memory_clear(generated_key);
         return 0; 
     }
 
@@ -177,7 +168,7 @@ int main(int argc, char* argv[]) {
         std::ifstream infile(input_path, std::ios::binary);
         if (!infile.is_open()) {
             std::cerr << "Error: Cannot open input file " << input_path << "\n";
-            secure_vector_clear(key_data);
+            secure_memory_clear(key_data);
             return 1;
         }
         input_data.assign((std::istreambuf_iterator<char>(infile)), std::istreambuf_iterator<char>());
@@ -189,7 +180,7 @@ int main(int argc, char* argv[]) {
 
     if (input_data.empty()) {
         std::cerr << "Error: No input data provided.\n";
-        secure_vector_clear(key_data);
+        secure_memory_clear(key_data);
         return 1;
     }
 
@@ -197,8 +188,8 @@ int main(int argc, char* argv[]) {
     void* handle = dlopen(lib_path.c_str(), RTLD_LAZY);
     if (!handle) {
         std::cerr << "Error: Cannot load plugin " << lib_path << " (" << dlerror() << ")\n";
-        secure_vector_clear(key_data);
-        secure_vector_clear(input_data);
+        secure_memory_clear(key_data);
+        secure_memory_clear(input_data);
         return 1;
     }
 
@@ -213,8 +204,8 @@ int main(int argc, char* argv[]) {
 
     if (!get_algorithm_info || !get_output_size || !encrypt || !decrypt) {
         std::cerr << "Error: Plugin missing required exported functions C ABI.\n";
-        secure_vector_clear(key_data);
-        secure_vector_clear(input_data);
+        secure_memory_clear(key_data);
+        secure_memory_clear(input_data);
         dlclose(handle);
         return 1;
     }
@@ -225,8 +216,8 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error: Invalid key size for algorithm " << info->algorithm_name 
                   << ". Expected " << info->key_size << " bytes, but got " 
                   << key_data.size() << " bytes.\n";
-        secure_vector_clear(key_data);
-        secure_vector_clear(input_data);
+        secure_memory_clear(key_data);
+        secure_memory_clear(input_data);
         dlclose(handle);
         return 1;
     }
@@ -238,8 +229,8 @@ int main(int argc, char* argv[]) {
     CryptoStatus status = get_output_size(input_data.size(), &out_size, action == CryptoAction::Encrypt);
     if (status != CryptoStatus::Success) {
         std::cerr << "Error: Plugin get_output_size failed with code " << static_cast<int>(status) << "\n";
-        secure_vector_clear(key_data);
-        secure_vector_clear(input_data);
+        secure_memory_clear(key_data);
+        secure_memory_clear(input_data);
         dlclose(handle);
         return 1;
     }
@@ -255,9 +246,9 @@ int main(int argc, char* argv[]) {
 
     if (status != CryptoStatus::Success) {
         std::cerr << "Error: Cryptographic operation failed with code " << static_cast<int>(status) << "\n";
-        secure_vector_clear(key_data);
-        secure_vector_clear(input_data);
-        secure_vector_clear(output_data);
+        secure_memory_clear(key_data);
+        secure_memory_clear(input_data);
+        secure_memory_clear(output_data);
         dlclose(handle);
         return 1;
     }
@@ -274,9 +265,9 @@ int main(int argc, char* argv[]) {
         std::cout.write(reinterpret_cast<const char*>(output_data.data()), dst_buf.size);
     }
 
-    secure_vector_clear(key_data);
-    secure_vector_clear(input_data);
-    secure_vector_clear(output_data);
+    secure_memory_clear(key_data);
+    secure_memory_clear(input_data);
+    secure_memory_clear(output_data);
     dlclose(handle);
     return 0;
 }

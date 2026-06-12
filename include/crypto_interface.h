@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <vector>
 
 enum class CryptoStatus : int32_t {
     Success = 0,
@@ -23,6 +24,22 @@ struct MutBuffer {
     size_t size;
 };
 
+void secure_memory_clear(uint8_t* ptr, size_t size) {
+    if (ptr) {
+        volatile uint8_t* vptr = static_cast<volatile uint8_t*>(ptr);
+        while (size--) {
+            *vptr++ = 0;
+        }
+    }
+}
+
+void secure_memory_clear(std::vector<uint8_t>& vec) {
+    if (!vec.empty()) {
+        secure_memory_clear(vec.data(), vec.size());
+        vec.clear(); 
+    }
+}
+
 extern "C" {
     CryptoStatus get_output_size(size_t input_size, size_t* out_size, bool is_encrypt);
 
@@ -35,7 +52,7 @@ extern "C" {
         size_t key_size;
     };
 
-    extern "C" const AlgorithmInfo* get_algorithm_info();
+    const AlgorithmInfo* get_algorithm_info();
 
 }
 
