@@ -17,6 +17,18 @@ static uint64_t mod_pow(uint64_t base, uint64_t exp, uint64_t mod) {
     return result;
 }
 
+// Проверка числа на простоту
+static bool is_prime(uint64_t n) {
+    if (n < 2) return false;
+    if (n % 2 == 0) return n == 2;
+    if (n % 3 == 0) return n == 3;
+    
+    for (uint64_t i = 5; i * i <= n; i += 6) {
+        if (n % i == 0 || n % (i + 2) == 0) return false;
+    }
+    return true;
+}
+
 // Парсинг строкового ключа формата "p,g,key"
 static bool parse_key(const uint8_t* key_data, size_t key_size, 
                       uint64_t& p, uint64_t& g, uint64_t& key_val) {
@@ -48,17 +60,28 @@ CryptoStatus get_output_size(size_t input_size, size_t* out_size, bool is_encryp
 CryptoStatus encrypt(ConstBuffer input, ConstBuffer key, MutBuffer output) {
     if (!input.data || !key.data || !output.data) return CryptoStatus::InvalidParam;
     
+    // Парсим ключ: p,g,public_key
     uint64_t p = 0, g = 0, public_key = 0;
     if (!parse_key(key.data, key.size, p, g, public_key)) {
         return CryptoStatus::InvalidParam;
     }
+    // Валидация параметров
+    if (!is_prime(p)) {
+        return CryptoStatus::InvalidParam;
+}
+    if (g == 0 || g >= p) {
+        return CryptoStatus::InvalidParam;
+    }
+    if (public_key < 2 || public_key >= p) {
+        return CryptoStatus::InvalidParam;
+    }
     
-    if (p == 0 || g == 0 || public_key == 0) return CryptoStatus::InvalidParam;
-    
+    // Проверка размера выходного буфера
     size_t required_size;
     get_output_size(input.size, &required_size, true);
     if (output.size < required_size) return CryptoStatus::BufferTooSmall;
     
+    // Генератор случайных чисел для сессионного ключа k
     std::random_device rd;
     std::mt19937_64 gen(rd());
     std::uniform_int_distribution<uint64_t> dis(2, p - 2);
@@ -80,14 +103,24 @@ CryptoStatus encrypt(ConstBuffer input, ConstBuffer key, MutBuffer output) {
 CryptoStatus decrypt(ConstBuffer input, ConstBuffer key, MutBuffer output) {
     if (!input.data || !key.data || !output.data) return CryptoStatus::InvalidParam;
     
+    // Парсим ключ: p,g,private_key
     uint64_t p = 0, g = 0, private_key = 0;
     if (!parse_key(key.data, key.size, p, g, private_key)) {
         return CryptoStatus::InvalidParam;
     }
     
-    if (p == 0 || private_key == 0) return CryptoStatus::InvalidParam;
-    if (input.size % 16 != 0) return CryptoStatus::InvalidParam;
+    // Валидация параметров
+    if (!is_prime(p)) {
+        return CryptoStatus::InvalidParam;
+    }
+    if (private_key < 2 || private_key >= p) {
+        return CryptoStatus::InvalidParam;
+    }
+    if (input.size % 16 != 0) {
+        return CryptoStatus::InvalidParam;
+    }
     
+    // Проверка размера выходного буфера
     size_t required_size;
     get_output_size(input.size, &required_size, false);
     if (output.size < required_size) return CryptoStatus::BufferTooSmall;
