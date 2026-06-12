@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
     if (action == CryptoAction::GenKey) {
         std::vector<uint8_t> generated_key;
         
-        if (algo_name == "vigenere" || algo_name == "rc4" || algo_name == "rsa" || algo_name == "elgamal") {
+        if (algo_name == "vigenere" || algo_name == "rc4" || algo_name == "rsa" || algo_name == "elgamal") { //сюда приписать algo_name == "otr" || algo_name == "grufeld"
             std::string lib_path = "./plugins/" + algo_name + "/lib" + algo_name + ".so";
             void* plugin_handle = dlopen(lib_path.c_str(), RTLD_LAZY);
             

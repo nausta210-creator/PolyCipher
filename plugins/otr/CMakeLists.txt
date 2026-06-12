@@ -1,0 +1,1 @@
+add_library(otr MODULE otr_cipher.cpp)

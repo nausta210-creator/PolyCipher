@@ -107,6 +107,45 @@ int main() {
         std::cout << "[PASS] ElGamal 3 tests passed!\n";
     }
 
+    
+
+    /*
+    std::vector<SymTest> grunfeld_tests = {
+        {"HELLO", "2015"},
+        {"Cryptography", "123"},
+        {"Test12345", "987"}
+    };
+
+    void* grunfeld = dlopen("./plugins/grunfeld/libgrunfeld.so", RTLD_LAZY);
+    if (grunfeld) {
+        for (auto& t : grunfeld_tests)
+            run_test(grunfeld, {t.data.begin(), t.data.end()}, {t.key.begin(), t.key.end()});
+        dlclose(grunfeld);
+        std::cout << "[PASS] Grunfeld 3 tests passed!\n";
+    } else {
+    std::cerr << "Failed to load Grunfeld plugin\n";
+    }
+
+    std::vector<SymTest> otr_tests = {
+        {"Secret message", "alice@example.com"},
+        {"Hello OTR", "bob@example.com"},
+        {"Another test", "carol@example.com"}
+    };
+
+    void* otr = dlopen("./plugins/otr/libotr.so", RTLD_LAZY);
+    if (otr) {
+        for (auto& t : otr_tests)
+            run_test(otr, {t.data.begin(), t.data.end()}, {t.key.begin(), t.key.end()});
+        dlclose(otr);
+        std::cout << "[PASS] OTR 3 tests passed!\n";
+    } else {
+        std::cerr << "Failed to load OTR plugin\n";
+    }
+    */
+
+
+
+
     std::cout << "\nAll tests passed successfully!\n";
     return 0;
 }
