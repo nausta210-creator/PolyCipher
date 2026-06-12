@@ -107,9 +107,6 @@ int main() {
         std::cout << "[PASS] ElGamal 3 tests passed!\n";
     }
 
-    
-
-    /*
     std::vector<SymTest> grunfeld_tests = {
         {"HELLO", "2015"},
         {"Cryptography", "123"},
@@ -123,7 +120,7 @@ int main() {
         dlclose(grunfeld);
         std::cout << "[PASS] Grunfeld 3 tests passed!\n";
     } else {
-    std::cerr << "Failed to load Grunfeld plugin\n";
+        std::cerr << "Failed to load Grunfeld plugin: " << dlerror() << "\n";
     }
 
     std::vector<SymTest> otr_tests = {
@@ -139,12 +136,8 @@ int main() {
         dlclose(otr);
         std::cout << "[PASS] OTR 3 tests passed!\n";
     } else {
-        std::cerr << "Failed to load OTR plugin\n";
+        std::cerr << "Failed to load OTR plugin: " << dlerror() << "\n";
     }
-    */
-
-
-
 
     std::cout << "\nAll tests passed successfully!\n";
     return 0;

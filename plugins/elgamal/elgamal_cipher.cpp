@@ -3,8 +3,6 @@
 #include <cstring>
 #include <cstdint>
 
-// МАТЕМАТИЧЕСКИЕ ФУНКЦИИ 
-
 bool isPrime(uint64_t n) {
     if (n <= 1) return false;
     if (n <= 3) return true;
@@ -15,7 +13,6 @@ bool isPrime(uint64_t n) {
     return true;
 }
 
-// Возведение в степень по модулю (бинарный алгоритм)
 static uint64_t mod_pow(uint64_t base, uint64_t exp, uint64_t mod) {
     uint64_t result = 1;
     base %= mod;
@@ -27,21 +24,21 @@ static uint64_t mod_pow(uint64_t base, uint64_t exp, uint64_t mod) {
     return result;
 }
 
-// Парсинг строкового ключа формата "p,g,key"
 static bool parse_key(const uint8_t* key_data, size_t key_size, 
                       uint64_t& p, uint64_t& g, uint64_t& key_val) {
-    char key_str[256] = {0};
-    size_t copy_len = (key_size < 255) ? key_size : 255;
+    char key_str[512] = {0};
+    size_t copy_len = (key_size < 511) ? key_size : 511;
     std::memcpy(key_str, key_data, copy_len);
     
-    return (std::sscanf(key_str, "%lu,%lu,%lu", &p, &g, &key_val) == 3);
+    if (std::sscanf(key_str, "Public: %lu,%lu,%lu", &p, &g, &key_val) == 3) return true;
+    if (std::sscanf(key_str, "Private: %lu,%lu,%lu", &p, &g, &key_val) == 3) return true;
+    if (std::sscanf(key_str, "%lu,%lu,%lu", &p, &g, &key_val) == 3) return true;
+    
+    return false;
 }
-
-// ЭКСПОРТИРУЕМЫЕ ФУНКЦИИ ДЛЯ C ABI
 
 extern "C" {
 
-// Возвращает необходимый размер выходного буфера
 CryptoStatus get_output_size(size_t input_size, size_t* out_size, bool is_encrypt) {
     if (!out_size) return CryptoStatus::InvalidParam;
     
@@ -54,7 +51,6 @@ CryptoStatus get_output_size(size_t input_size, size_t* out_size, bool is_encryp
     return CryptoStatus::Success;
 }
 
-// Функция зашифрования Эль-Гамаль
 CryptoStatus encrypt(ConstBuffer input, ConstBuffer key, MutBuffer output) {
     if (!input.data || !key.data || !output.data) return CryptoStatus::InvalidParam;
     
@@ -86,7 +82,6 @@ CryptoStatus encrypt(ConstBuffer input, ConstBuffer key, MutBuffer output) {
     return CryptoStatus::Success;
 }
 
-// Функция расшифрования Эль-Гамаль (через малую теорему Ферма)
 CryptoStatus decrypt(ConstBuffer input, ConstBuffer key, MutBuffer output) {
     if (!input.data || !key.data || !output.data) return CryptoStatus::InvalidParam;
     
@@ -108,7 +103,6 @@ CryptoStatus decrypt(ConstBuffer input, ConstBuffer key, MutBuffer output) {
         for (int j = 0; j < 8; ++j) a |= static_cast<uint64_t>(input.data[i + j]) << (j * 8);
         for (int j = 0; j < 8; ++j) b |= static_cast<uint64_t>(input.data[i + 8 + j]) << (j * 8);
         
-        // Малая теорема Ферма: c^(-1) ≡ c^(p-2) mod p
         uint64_t ax = mod_pow(a, private_key, p);
         uint64_t m = (static_cast<__uint128_t>(b) * mod_pow(ax, p - 2, p)) % p;
         
@@ -144,4 +138,4 @@ CryptoStatus generate_elgamal_keys(uint64_t p, uint64_t g, char* buffer, size_t 
     return CryptoStatus::Success;
 }
 
-} // extern "C"
+}

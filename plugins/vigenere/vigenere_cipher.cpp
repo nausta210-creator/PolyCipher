@@ -65,7 +65,7 @@ CryptoStatus decrypt(ConstBuffer input, ConstBuffer key, MutBuffer output) {
 }
 
 const AlgorithmInfo* get_algorithm_info() {
-    static const AlgorithmInfo info = { "Vigenere", VIGENERE_KEY_SIZE }; 
+    static const AlgorithmInfo info = { "Vigenere", 0 }; 
     return &info;
 }
 

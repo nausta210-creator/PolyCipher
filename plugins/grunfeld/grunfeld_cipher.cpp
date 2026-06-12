@@ -88,7 +88,7 @@ const AlgorithmInfo* get_algorithm_info() {
     return &info;
 }
 
-CryptoStatus generate_grunfeld_keys(char* buffer, size_t max_len, size_t* bytes_written) {
+CryptoStatus generate_grunfeld_keys(uint64_t, uint64_t, char* buffer, size_t max_len, size_t* bytes_written) {
     if (!buffer || !bytes_written) return CryptoStatus::InvalidParam;
     random_device rd;
     mt19937 gen(rd());
