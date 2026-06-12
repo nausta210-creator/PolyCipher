@@ -1,4 +1,5 @@
 #include "crypto_interface.h"
+#include <random>
 
 void secure_mem_clear(uint8_t* ptr, size_t size) {
     if (ptr) {
@@ -10,6 +11,21 @@ void secure_mem_clear(uint8_t* ptr, size_t size) {
 }
 
 extern "C" {
+CryptoStatus generate_vigenere_keys(uint64_t, uint64_t, char* buffer, size_t buffer_size, size_t* bytes_written) {
+    if (!buffer || !bytes_written) return CryptoStatus::InvalidParam;
+    if (buffer_size < 16) return CryptoStatus::BufferTooSmall;
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distr('a', 'z');
+
+    for (size_t j = 0; j < 16; ++j) {
+        buffer[j] = static_cast<char>(distr(gen));
+    }
+
+    *bytes_written = 16;
+    return CryptoStatus::Success;
+}
 
 CryptoStatus get_output_size(size_t input_size, size_t* out_size, bool is_encrypt) {
     if (!out_size) return CryptoStatus::InvalidParam;

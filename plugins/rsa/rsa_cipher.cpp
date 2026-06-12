@@ -90,7 +90,7 @@ CryptoStatus generate_rsa_keys(uint64_t p, uint64_t q, char* out_buffer, size_t 
 
     int64_t d = extended_gcd(e, phi); 
     
-    std::string keys_str = "Public: " + std::to_string(e) + "," + std::to_string(n) + "\nPrivate: " + std::to_string(d) + "," + std::to_string(n);
+    std::string keys_str = "Public: " + std::to_string(e) + "," + std::to_string(n) + "\nPrivate: " + std::to_string(d) + "," + std::to_string(n) + "\n";
 
     if (keys_str.size() >= max_size) {
         return CryptoStatus::BufferTooSmall;

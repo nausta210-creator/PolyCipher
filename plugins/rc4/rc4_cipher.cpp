@@ -1,6 +1,7 @@
 #include "../../include/crypto_interface.h"
 #include <cstring>
 #include <cstdint>
+#include <random>
 
 // ВНУТРЕННИЕ ФУНКЦИИ RC4 
 
@@ -44,7 +45,21 @@ static void rc4_process(const uint8_t* input, uint8_t* output, size_t len, uint8
 // ЭКСПОРТИРУЕМЫЕ ФУНКЦИИ ДЛЯ C ABI
 
 extern "C" {
+CryptoStatus generate_rc4_keys(uint64_t, uint64_t, char* buffer, size_t buffer_size, size_t* bytes_written) {
+    if (!buffer || !bytes_written) return CryptoStatus::InvalidParam;
+    if (buffer_size < 16) return CryptoStatus::BufferTooSmall; 
 
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distr(32, 126); 
+
+    for (size_t j = 0; j < 16; ++j) {
+        buffer[j] = static_cast<char>(distr(gen));
+    }
+
+    *bytes_written = 16;
+    return CryptoStatus::Success;
+}
 // Возвращает необходимый размер выходного буфера
 // Для RC4 размер не меняется (потоковый шифр)
 CryptoStatus get_output_size(size_t input_size, size_t* out_size, bool /*is_encrypt*/) {
@@ -73,6 +88,11 @@ CryptoStatus encrypt(ConstBuffer input, ConstBuffer key, MutBuffer output) {
 // Функция расшифрования (симметрична шифрованию)
 CryptoStatus decrypt(ConstBuffer input, ConstBuffer key, MutBuffer output) {
     return encrypt(input, key, output);
+}
+
+const AlgorithmInfo* get_algorithm_info() {
+    static const AlgorithmInfo info = { "RC4", 0 };
+    return &info;
 }
 
 } // extern "C"

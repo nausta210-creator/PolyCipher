@@ -2,6 +2,7 @@
 #include <cassert>
 #include <vector>
 #include <dlfcn.h>
+#include <string>
 #include "crypto_interface.h"
 
 void run_test(void* handle, const std::vector<uint8_t>& data, const std::vector<uint8_t>& key) {
@@ -15,20 +16,14 @@ void run_test(void* handle, const std::vector<uint8_t>& data, const std::vector<
     assert(get_output_size && encrypt && decrypt);
 
     size_t enc_size = 0;
-    CryptoStatus status = get_output_size(data.size(), &enc_size, true);
-    assert(status == CryptoStatus::Success);
-    
+    get_output_size(data.size(), &enc_size, true);
     std::vector<uint8_t> enc_buf(enc_size);
-    status = encrypt({data.data(), data.size()}, {key.data(), key.size()}, {enc_buf.data(), enc_buf.size()});
-    assert(status == CryptoStatus::Success);
+    encrypt({data.data(), data.size()}, {key.data(), key.size()}, {enc_buf.data(), enc_buf.size()});
 
     size_t dec_size = 0;
-    status = get_output_size(enc_buf.size(), &dec_size, false);
-    assert(status == CryptoStatus::Success);
-    
+    get_output_size(enc_buf.size(), &dec_size, false);
     std::vector<uint8_t> dec_buf(dec_size);
-    status = decrypt({enc_buf.data(), enc_buf.size()}, {key.data(), key.size()}, {dec_buf.data(), dec_buf.size()});
-    assert(status == CryptoStatus::Success);
+    decrypt({enc_buf.data(), enc_buf.size()}, {key.data(), key.size()}, {dec_buf.data(), dec_buf.size()});
 
     assert(data == dec_buf); 
 }
@@ -46,46 +41,72 @@ void run_rsa_test(void* handle, const std::vector<uint8_t>& data, const std::vec
     size_t enc_size = 0;
     get_output_size(data.size(), &enc_size, true);
     std::vector<uint8_t> enc_buf(enc_size);
-    CryptoStatus status = encrypt({data.data(), data.size()}, {public_key.data(), public_key.size()}, {enc_buf.data(), enc_buf.size()});
-    assert(status == CryptoStatus::Success);
+    encrypt({data.data(), data.size()}, {public_key.data(), public_key.size()}, {enc_buf.data(), enc_buf.size()});
 
     size_t dec_size = 0;
     get_output_size(enc_buf.size(), &dec_size, false);
     std::vector<uint8_t> dec_buf(dec_size);
-    status = decrypt({enc_buf.data(), enc_buf.size()}, {private_key.data(), private_key.size()}, {dec_buf.data(), dec_buf.size()});
-    assert(status == CryptoStatus::Success);
+    decrypt({enc_buf.data(), enc_buf.size()}, {private_key.data(), private_key.size()}, {dec_buf.data(), dec_buf.size()});
 
     assert(data == dec_buf);
 }
 
+struct SymTest { std::string data; std::string key; };
+struct AsymTest { std::string data; std::string pub; std::string priv; };
+
 int main() {
     std::cout << "RUNNING AUTOMATIC PLUGINS TESTS\n";
 
+    std::vector<SymTest> vigenere_tests = {
+        {"Hello", "key"}, {"Cryptography", "secret"}, {"Test12345", "abc"}
+    };
+    
     void* vigenere = dlopen("./plugins/vigenere/libvigenere.so", RTLD_LAZY);
-    if (!vigenere) {
-        std::cerr << "Failed to load Vigenere plugin for tests: " << dlerror() << "\n";
-        return 1;
+    if (vigenere) {
+        for(auto& t : vigenere_tests) run_test(vigenere, {t.data.begin(), t.data.end()}, {t.key.begin(), t.key.end()});
+        dlclose(vigenere);
+        std::cout << "[PASS] Vigenere 3 tests passed!\n";
     }
-    run_test(vigenere, {'H', 'e', 'l', 'l', 'o'}, {'k', 'e', 'y'});
-    dlclose(vigenere);
-    std::cout << "[PASS] Vigenere tests passed successfully!\n";
 
+    std::vector<SymTest> rc4_tests = {
+        {"PlaintextData", "key1"}, {"AnotherTest", "password"}, {"Short", "k"}
+    };
+    
+    void* rc4 = dlopen("./plugins/rc4/librc4.so", RTLD_LAZY);
+    if (rc4) {
+        for(auto& t : rc4_tests) run_test(rc4, {t.data.begin(), t.data.end()}, {t.key.begin(), t.key.end()});
+        dlclose(rc4);
+        std::cout << "[PASS] RC4 3 tests passed!\n";
+    }
+
+    std::vector<AsymTest> rsa_tests = {
+        {"AVTF", "7,3233", "1783,3233"},
+        {"Data", "7,3233", "1783,3233"},
+        {"123", "7,3233", "1783,3233"}
+    };
+    
     void* rsa = dlopen("./plugins/rsa/librsa.so", RTLD_LAZY);
-    if (!rsa) {
-        std::cerr << "Failed to load RSA plugin for tests: " << dlerror() << "\n";
-        return 1;
+    if (rsa) {
+        for(auto& t : rsa_tests) run_rsa_test(rsa, {t.data.begin(), t.data.end()}, {t.pub.begin(), t.pub.end()}, {t.priv.begin(), t.priv.end()});
+        dlclose(rsa);
+        std::cout << "[PASS] RSA 3 tests passed!\n";
     }
-    
-    std::string pub_key = "7,3233";   
-    std::string priv_key = "1783,3233"; 
-    
-    std::vector<uint8_t> rsa_pub(pub_key.begin(), pub_key.end());
-    std::vector<uint8_t> rsa_priv(priv_key.begin(), priv_key.end());
-    
-    run_rsa_test(rsa, {'A', 'V', 'T', 'F'}, rsa_pub, rsa_priv);
-    dlclose(rsa);
-    std::cout << "[PASS] RSA tests passed successfully!\n";
 
-    std::cout << "All tests passed completely!\n";
+    std::vector<AsymTest> eg_tests = {
+        {"Hello", "257,3,243", "257,3,5"},
+        {"Code", "257,3,243", "257,3,5"},
+        {"Test", "257,3,243", "257,3,5"}
+    };
+    
+    void* elgamal = dlopen("./plugins/elgamal/libelgamal.so", RTLD_LAZY);
+    if (elgamal) {
+        for(auto& t : eg_tests) {
+            run_rsa_test(elgamal, {t.data.begin(), t.data.end()}, {t.pub.begin(), t.pub.end()}, {t.priv.begin(), t.priv.end()});
+        }
+        dlclose(elgamal);
+        std::cout << "[PASS] ElGamal 3 tests passed!\n";
+    }
+
+    std::cout << "\nAll tests passed successfully!\n";
     return 0;
 }

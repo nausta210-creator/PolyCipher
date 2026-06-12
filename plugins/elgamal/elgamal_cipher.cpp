@@ -108,4 +108,27 @@ CryptoStatus decrypt(ConstBuffer input, ConstBuffer key, MutBuffer output) {
     return CryptoStatus::Success;
 }
 
+const AlgorithmInfo* get_algorithm_info() {
+    static const AlgorithmInfo info = { "ElGamal", 0 };
+    return &info;
+}
+
+CryptoStatus generate_elgamal_keys(uint64_t p, uint64_t g, char* buffer, size_t max_len, size_t* bytes_written) {
+    if (!buffer || !bytes_written) return CryptoStatus::InvalidParam;
+    if (p < 3 || g == 0) return CryptoStatus::InvalidParam;
+    
+    std::random_device rd;
+    std::mt19937_64 gen(rd());
+    std::uniform_int_distribution<uint64_t> dis(2, p - 2);
+    
+    uint64_t x = dis(gen);
+    uint64_t y = mod_pow(g, x, p);  
+    
+    int written = std::snprintf(buffer, max_len, "Public: %lu,%lu,%lu\nPrivate: %lu,%lu,%lu\n", p, g, y, p, g, x);
+    if (written < 0 || static_cast<size_t>(written) >= max_len) return CryptoStatus::InvalidParam;
+    
+    *bytes_written = static_cast<size_t>(written);
+    return CryptoStatus::Success;
+}
+
 } // extern "C"

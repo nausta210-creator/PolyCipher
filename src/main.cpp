@@ -79,52 +79,54 @@ int main(int argc, char* argv[]) {
     if (action == CryptoAction::GenKey) {
         std::vector<uint8_t> generated_key;
         
-        if (algo_name == "vigenere") {
-            std::random_device rd;
-            std::mt19937 gen(rd());
-            std::uniform_int_distribution<> distr('a', 'z');
-            for (int j = 0; j < 16; ++j) {
-                generated_key.push_back(static_cast<uint8_t>(distr(gen)));
-            }
-        } else if (algo_name == "rsa") {
-            uint64_t p = 0, q = 0;
-            std::cout << "Введите первое простое число (p): ";
-            std::cin >> p;
-            std::cout << "Введите второе простое число (q): ";
-            std::cin >> q;
-
-            std::string lib_path = "./librsa.so";
-            void* rsa_handle = dlopen(lib_path.c_str(), RTLD_LAZY);
-            if (!rsa_handle) {
-                std::cerr << "Error: Cannot load RSA plugin for key generation.\n";
+        if (algo_name == "vigenere" || algo_name == "rc4" || algo_name == "rsa" || algo_name == "elgamal") {
+            std::string lib_path = "./plugins/" + algo_name + "/lib" + algo_name + ".so";
+            void* plugin_handle = dlopen(lib_path.c_str(), RTLD_LAZY);
+            
+            if (!plugin_handle) {
+                std::cerr << "Error: Cannot load " << algo_name << " plugin for key generation. (" << dlerror() << ")\n";
                 return 1;
             }
 
-            using GenKeysFunc = CryptoStatus (*)(uint64_t, uint64_t, char*, size_t, size_t*);
-            auto generate_rsa_keys = reinterpret_cast<GenKeysFunc>(dlsym(rsa_handle, "generate_rsa_keys"));
+            uint64_t param1 = 0, param2 = 0;
 
-            if (!generate_rsa_keys) {
-                std::cerr << "Error: Plugin missing 'generate_rsa_keys' function.\n";
-                dlclose(rsa_handle);
+            if (algo_name == "rsa") {
+                std::cout << "Введите первое простое число (p): "; std::cin >> param1;
+                std::cout << "Введите второе простое число (q): "; std::cin >> param2;
+            } else if (algo_name == "elgamal") {
+                std::cout << "Введите простое число (p): "; std::cin >> param1;
+                std::cout << "Введите основание/генератор (g): "; std::cin >> param2;
+            }
+
+            std::string func_name = "generate_" + algo_name + "_keys";
+            
+            using GenKeysFunc = CryptoStatus (*)(uint64_t, uint64_t, char*, size_t, size_t*);
+            auto generate_keys = reinterpret_cast<GenKeysFunc>(dlsym(plugin_handle, func_name.c_str()));
+
+            if (!generate_keys) {
+                std::cerr << "Error: Plugin missing '" << func_name << "' function.\n";
+                dlclose(plugin_handle);
                 return 1;
             }
 
             char buffer[512] = {0};
             size_t bytes_written = 0;
 
-            CryptoStatus status = generate_rsa_keys(p, q, buffer, sizeof(buffer), &bytes_written);
-            if (status == CryptoStatus::InvalidParam) {
+            CryptoStatus status = generate_keys(param1, param2, buffer, sizeof(buffer), &bytes_written);
+            
+            if (status == CryptoStatus::InvalidParam && algo_name == "rsa") {
                 std::cerr << "Error: Invalid parameters. Both p and q must be prime numbers!\n";
-                dlclose(rsa_handle);
+                dlclose(plugin_handle);
                 return 1;
             } else if (status != CryptoStatus::Success) {
-                std::cerr << "Error: Key generation failed inside plugin (Status code: " 
-                          << static_cast<int>(status) << ").\n";
-                dlclose(rsa_handle);
+                std::cerr << "Error: Key generation failed inside " << algo_name << " plugin.\n";
+                dlclose(plugin_handle);
                 return 1;
             }
+
             generated_key.assign(buffer, buffer + bytes_written);
-            dlclose(rsa_handle);
+            dlclose(plugin_handle);
+
         } else {
             std::cerr << "Error: Unknown algorithm for key generation.\n";
             return 1;
@@ -146,6 +148,7 @@ int main(int argc, char* argv[]) {
         secure_vector_clear(generated_key);
         return 0; 
     }
+
 
     std::vector<uint8_t> key_data;
     if (!key_param.empty()) {
@@ -190,7 +193,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::string lib_path = "./lib" + algo_name + ".so";
+    std::string lib_path = "./plugins/" + algo_name + "/lib" + algo_name + ".so";
     void* handle = dlopen(lib_path.c_str(), RTLD_LAZY);
     if (!handle) {
         std::cerr << "Error: Cannot load plugin " << lib_path << " (" << dlerror() << ")\n";
